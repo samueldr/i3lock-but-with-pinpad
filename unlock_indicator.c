@@ -183,8 +183,8 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
     /* Initialize cairo: Create one in-memory surface to render the unlock
      * indicator on, create one XCB surface to actually draw (one or more,
      * depending on the amount of screens) unlock indicators on. */
-    cairo_surface_t *output = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, button_diameter_physical, button_diameter_physical);
-    cairo_t *ctx = cairo_create(output);
+    cairo_surface_t *widget_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, resolution[0], resolution[1]);
+    cairo_t *ctx = cairo_create(widget_surface);
 
     cairo_surface_t *xcb_output = cairo_xcb_surface_create(conn, bg_pixmap, vistype, resolution[0], resolution[1]);
     cairo_t *xcb_ctx = cairo_create(xcb_output);
@@ -389,7 +389,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         for (int screen = 0; screen < xr_screens; screen++) {
             int x = (xr_resolutions[screen].x + ((xr_resolutions[screen].width / 2) - (button_diameter_physical / 2)));
             int y = (xr_resolutions[screen].y + ((xr_resolutions[screen].height / 2) - (button_diameter_physical / 2)));
-            cairo_set_source_surface(xcb_ctx, output, x, y);
+            cairo_set_source_surface(xcb_ctx, widget_surface, x, y);
             cairo_rectangle(xcb_ctx, x, y, button_diameter_physical, button_diameter_physical);
             cairo_fill(xcb_ctx);
         }
@@ -399,13 +399,13 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
          * hope for the best. */
         int x = (last_resolution[0] / 2) - (button_diameter_physical / 2);
         int y = (last_resolution[1] / 2) - (button_diameter_physical / 2);
-        cairo_set_source_surface(xcb_ctx, output, x, y);
+        cairo_set_source_surface(xcb_ctx, widget_surface, x, y);
         cairo_rectangle(xcb_ctx, x, y, button_diameter_physical, button_diameter_physical);
         cairo_fill(xcb_ctx);
     }
 
     cairo_surface_destroy(xcb_output);
-    cairo_surface_destroy(output);
+    cairo_surface_destroy(widget_surface);
     cairo_destroy(ctx);
     cairo_destroy(xcb_ctx);
 }
