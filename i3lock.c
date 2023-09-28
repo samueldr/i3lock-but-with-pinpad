@@ -312,8 +312,7 @@ static void input_done(void) {
     auth_state = STATE_AUTH_WRONG;
     failed_attempts += 1;
     clear_input();
-    if (unlock_indicator)
-        redraw_screen();
+    redraw_screen();
 
     /* Clear this state after 2 seconds (unless the user enters another
      * password during that time). */
