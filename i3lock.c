@@ -346,6 +346,64 @@ static bool skip_without_validation(void) {
 }
 
 static void handle_button_press(xcb_button_press_event_t *event) {
+    const int x = event->event_x;
+    const int y = event->event_y;
+    char buf[2];
+
+    // *backspace* key
+    if (/*TODO*/false) {
+        if (input_position == 0) {
+            START_TIMER(clear_indicator_timeout, 1.0, clear_indicator_cb);
+            unlock_state = STATE_NOTHING_TO_DELETE;
+            redraw_screen();
+            return;
+        }
+
+        /* decrement input_position to point to the previous glyph */
+        u8_dec(password, &input_position);
+        password[input_position] = '\0';
+
+        /* Hide the unlock indicator after a bit if the password buffer is
+         * empty. */
+        START_TIMER(clear_indicator_timeout, 1.0, clear_indicator_cb);
+        unlock_state = STATE_BACKSPACE_ACTIVE;
+        redraw_screen();
+        unlock_state = STATE_KEY_PRESSED;
+        return;
+    }
+
+    // *send* key
+    if (/*TODO*/false) {
+        finish_input();
+        skip_repeated_empty_password = true;
+        return;
+    }
+
+    skip_repeated_empty_password = false;
+    // A new password is being entered, but a previous one is pending.
+    // Discard the old one and clear the retry_verification flag.
+    if (retry_verification) {
+        retry_verification = false;
+        clear_input();
+    }
+
+    // Number keys
+    if (/*TODO*/false) {
+        if ((input_position + 8) >= (int)sizeof(password)) {
+            return;
+        }
+        snprintf(buf, 2, "%d", seq+1);
+        memcpy(password + input_position, buf, 1);
+        input_position += 1;
+
+        unlock_state = STATE_KEY_ACTIVE;
+        redraw_screen();
+        unlock_state = STATE_KEY_PRESSED;
+    }
+
+#ifdef BUILD_WITH_EXTRA_INSECURE_PRINT
+    DEBUG("current password = %.*s\n", input_position, password);
+#endif
 }
 
 /*
