@@ -230,7 +230,7 @@ bool grab_pointer_and_keyboard(xcb_connection_t *conn, xcb_screen_t *screen, xcb
             conn,
             false,               /* get all pointer events specified by the following mask */
             screen->root,        /* grab the root window */
-            XCB_NONE,            /* which events to let through */
+            XCB_EVENT_MASK_BUTTON_PRESS, /* which events to let through */
             XCB_GRAB_MODE_ASYNC, /* pointer events should continue as normal */
             XCB_GRAB_MODE_ASYNC, /* keyboard mode */
             XCB_NONE,            /* confine_to = in which window should the cursor stay */

@@ -345,6 +345,9 @@ static bool skip_without_validation(void) {
     return false;
 }
 
+static void handle_button_press(xcb_button_press_event_t *event) {
+}
+
 /*
  * Handle key presses. Fixes state, then looks up the key symbol for the
  * given keycode, then looks up the key symbol (as UCS-2), converts it to
@@ -874,6 +877,10 @@ static void xcb_check_cb(EV_P_ ev_check *w, int revents) {
         int type = (event->response_type & 0x7F);
 
         switch (type) {
+            case XCB_BUTTON_PRESS:
+                handle_button_press((xcb_button_press_event_t *)event);
+                break;
+
             case XCB_KEY_PRESS:
                 handle_key_press((xcb_key_press_event_t *)event);
                 break;
