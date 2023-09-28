@@ -344,7 +344,11 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         if (unlock_state == STATE_KEY_ACTIVE ||
             unlock_state == STATE_BACKSPACE_ACTIVE) {
             cairo_new_sub_path(ctx);
+#if 1
+            double highlight_start = ((input_position) % (int)(2 * M_PI * 100)) / 1.0;
+#else
             double highlight_start = (rand() % (int)(2 * M_PI * 100)) / 100.0;
+#endif
             cairo_arc(ctx,
                       BUTTON_CENTER /* x */,
                       BUTTON_CENTER /* y */,
