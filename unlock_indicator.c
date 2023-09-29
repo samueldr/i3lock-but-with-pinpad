@@ -343,6 +343,27 @@ static void draw_classic_wheel(cairo_t *ctx) {
     }
 }
 
+static void draw_pad_text(
+    cairo_t *ctx
+    , const char *text
+    , double x
+    , double y
+    , double width
+    , bool centered
+) {
+    cairo_text_extents_t extents;
+
+    cairo_text_extents(ctx, text, &extents);
+    y -= extents.y_bearing;
+    if (centered) {
+        x = width/2 - ((extents.width / 2) + extents.x_bearing);
+    }
+
+    cairo_move_to(ctx, x, y);
+    cairo_show_text(ctx, text);
+    cairo_close_path(ctx);
+}
+
 void draw_pin_pad(cairo_t *ctx) {
     cairo_surface_t *surface = (cairo_surface_t*)cairo_get_target(ctx);
     uint32_t widget_width = cairo_image_surface_get_width(surface);
