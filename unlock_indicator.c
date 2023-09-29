@@ -589,6 +589,9 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
     cairo_fill(xcb_ctx);
 
 
+    widget_height *= 0.9;
+    widget_width *= 0.9;
+
     /* Create one in-memory surface to render the unlock indicator on */
     cairo_surface_t *widget_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, widget_width, widget_height);
     cairo_t *ctx = cairo_create(widget_surface);
