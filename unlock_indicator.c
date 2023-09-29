@@ -383,11 +383,14 @@ void draw_pin_pad(cairo_t *ctx) {
 }
 
 void draw_pin_box(cairo_t *ctx) {
+    static char buf[512] = "";
     cairo_surface_t *surface = (cairo_surface_t*)cairo_get_target(ctx);
     uint32_t widget_width = cairo_image_surface_get_width(surface);
     uint32_t widget_height = cairo_image_surface_get_height(surface);
     uint32_t x = 0;
     uint32_t y = 0;
+    double opa = 1;
+    double font_size = 48;
 
     // Assumed to be the portrait layout for now...
     widget_height = widget_height - widget_width;
@@ -398,6 +401,36 @@ void draw_pin_box(cairo_t *ctx) {
     cairo_fill(ctx);
 #endif
 
+    buf[0] = 0;
+    // TODO: replace with unicode string handling, and use 'BLACK CIRCLE' (U+25CF) ●●●●●●●
+    for (int i = 0; i < input_position; i++) {
+        buf[i] = '*';
+        buf[i+1] = '\0';
+    }
+
+    switch (auth_state) {
+        case STATE_AUTH_VERIFY:
+            opa = 0.5;
+            break;
+        case STATE_AUTH_LOCK:
+            strncpy(buf, "Locking…", 512);
+            break;
+        case STATE_AUTH_WRONG:
+            strncpy(buf, "Wrong!", 512);
+            break;
+        case STATE_I3LOCK_LOCK_FAILED:
+            strncpy(buf, "Lock failed!", 512);
+            break;
+        default:
+    };
+
+    // TODO Detect dark vs. light !!
+    cairo_set_source_rgba(ctx, 0., 0., 0., opa);
+
+    cairo_select_font_face(ctx, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(ctx, font_size);
+    uint32_t middle = widget_height / 2 - font_size/2;
+    draw_pad_text(ctx, buf, x + 0, y + middle, widget_width, true);
 }
 
 /*
