@@ -380,9 +380,6 @@ void draw_pin_pad(cairo_t *ctx) {
     cairo_rectangle(ctx, x, y, widget_width, widget_height);
     cairo_fill(ctx);
 #endif
-
-    cairo_push_group(ctx);
-    cairo_pop_group(ctx);
 }
 
 void draw_pin_box(cairo_t *ctx) {
@@ -401,8 +398,6 @@ void draw_pin_box(cairo_t *ctx) {
     cairo_fill(ctx);
 #endif
 
-    cairo_push_group(ctx);
-    cairo_pop_group(ctx);
 }
 
 /*
