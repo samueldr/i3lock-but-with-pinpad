@@ -67,7 +67,7 @@ static bool pam_cleanup;
 #endif
 int input_position = 0;
 /* Holds the password you enter (in UTF-8). */
-static char password[512];
+char password[512];
 static bool beep = false;
 bool debug_mode = false;
 bool unlock_indicator = true;
