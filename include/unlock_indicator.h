@@ -11,6 +11,8 @@ typedef enum {
     STATE_BACKSPACE_ACTIVE = 3,  /* backspace was pressed recently, highlight
                                    part of the unlock indicator in red. */
     STATE_NOTHING_TO_DELETE = 4, /* backspace was pressed, but there is nothing to delete. */
+    STATE_PAD_ACTIVE = 5, /* For the pin pad, so we don't leak numbers */
+    STATE_PAD_BACKSPACE_ACTIVE = 6, /* For the pin pad, so it looks more correct. */
 } unlock_state_t;
 
 typedef enum {

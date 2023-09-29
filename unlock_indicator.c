@@ -34,12 +34,15 @@
 
 #define WIDGET_RATIO_WIDTH 11
 #define WIDGET_RATIO_HEIGHT 16
+#define WIDGET_PADDING 16
 
 /*******************************************************************************
  * Variables defined in i3lock.c.
  ******************************************************************************/
 
 extern bool debug_mode;
+
+extern char password[512];
 
 /* The current position in the input buffer. Useful to determine if any
  * characters of the password have already been entered or not. */
@@ -356,12 +359,84 @@ static void draw_pad_text(
     cairo_text_extents(ctx, text, &extents);
     y -= extents.y_bearing;
     if (centered) {
-        x = width/2 - ((extents.width / 2) + extents.x_bearing);
+        x += width/2 - ((extents.width / 2) + extents.x_bearing);
     }
 
     cairo_move_to(ctx, x, y);
     cairo_show_text(ctx, text);
     cairo_close_path(ctx);
+}
+
+void draw_button(
+    cairo_t *ctx
+    , uint32_t widget_width
+    , uint32_t widget_height
+    , uint32_t x
+    , uint32_t y
+    , uint32_t i
+    , uint32_t j
+    , double font_size
+) {
+    uint32_t num = i + 3*j;
+    uint32_t button_width = floor(widget_width / 3);
+    uint32_t button_height = floor(widget_height / 4);
+    char text[16] = "";
+    bool pressed = false;
+
+    /*
+     * Merge outlines
+     */
+    x += 1;
+    y += 3;
+    button_width -= 1;
+    button_height -= 1;
+
+    x += i*button_width;
+    y += j*button_height;
+
+    num += 1;
+    switch (num) {
+        case 10:
+            strncpy(text, "<=", 16);
+            break;
+        case 11:
+            strncpy(text, "0", 16);
+            break;
+        case 12:
+            strncpy(text, ">>", 16);
+            break;
+        default:
+            snprintf(text, 16, "%d", num);
+            break;
+    }
+
+    if (unlock_state == STATE_PAD_ACTIVE) {
+        if (password[input_position-1] == text[0]) {
+            pressed = true;
+        }
+    }
+    if (auth_state == STATE_AUTH_VERIFY && num == 12) {
+        pressed = true;
+    }
+    if (unlock_state == STATE_PAD_BACKSPACE_ACTIVE && num == 10) {
+        pressed = true;
+    }
+
+    cairo_rectangle(ctx, x, y, button_width, button_height);
+    cairo_set_source_rgba(ctx, 0, 0, 0, 1);
+    cairo_stroke(ctx);
+
+    cairo_rectangle(ctx, x, y, button_width, button_height);
+    cairo_set_source_rgba(ctx, 0, 0, 0, 0.1);
+    if (pressed) {
+        cairo_set_source_rgba(ctx, 0, 0, 0, 0.4);
+    }
+    cairo_fill(ctx);
+
+    cairo_set_source_rgba(ctx, 0, 0, 0, 1);
+    uint32_t middle = button_height / 2 - font_size/2 + 4;
+
+    draw_pad_text(ctx, text, x, y + middle, button_width, true);
 }
 
 void draw_pin_pad(cairo_t *ctx) {
@@ -370,16 +445,35 @@ void draw_pin_pad(cairo_t *ctx) {
     uint32_t widget_height = cairo_image_surface_get_height(surface);
     uint32_t x = 0;
     uint32_t y = 0;
+    double font_size = 32;
 
     // Assumed to be the portrait layout for now...
     y = widget_height - widget_width;
     widget_height = widget_width;
+
+    widget_height -= 2 * WIDGET_PADDING;
+    widget_width  -= 2 * WIDGET_PADDING;
+    x += WIDGET_PADDING;
+    y += WIDGET_PADDING;
 
 #ifdef WITH_DEBUG_RENDER
     cairo_set_source_rgb(ctx, 0, 1, 1);
     cairo_rectangle(ctx, x, y, widget_width, widget_height);
     cairo_fill(ctx);
 #endif
+
+    cairo_select_font_face(ctx, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(ctx, font_size);
+
+    /*
+     * The pad area is a matrix of 3×4 buttons.
+     */
+    cairo_set_line_width(ctx, 2.0);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 4; j++) {
+            draw_button(ctx, widget_width, widget_height, x, y, i, j, font_size);
+        }
+    }
 }
 
 void draw_pin_box(cairo_t *ctx) {
@@ -394,6 +488,11 @@ void draw_pin_box(cairo_t *ctx) {
 
     // Assumed to be the portrait layout for now...
     widget_height = widget_height - widget_width;
+
+    widget_height -= 2 * WIDGET_PADDING;
+    widget_width  -= 2 * WIDGET_PADDING;
+    x += WIDGET_PADDING;
+    y += WIDGET_PADDING;
 
 #ifdef WITH_DEBUG_RENDER
     cairo_set_source_rgb(ctx, 1, 1, 0);
@@ -430,7 +529,7 @@ void draw_pin_box(cairo_t *ctx) {
     cairo_select_font_face(ctx, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(ctx, font_size);
     uint32_t middle = widget_height / 2 - font_size/2;
-    draw_pad_text(ctx, buf, x + 0, y + middle, widget_width, true);
+    draw_pad_text(ctx, buf, x, y + middle, widget_width, true);
 }
 
 /*
