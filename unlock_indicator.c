@@ -23,7 +23,9 @@
 #include "randr.h"
 #include "dpi.h"
 
+#if 0
 #define WITH_DEBUG_RENDER
+#endif
 
 #define BUTTON_RADIUS 90
 #define BUTTON_SPACE (BUTTON_RADIUS + 5)
