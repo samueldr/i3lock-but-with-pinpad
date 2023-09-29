@@ -173,19 +173,27 @@ static void check_modifier_keys(void) {
  */
 void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
     const double scaling_factor = get_dpi_value() / 96.0;
-    int button_diameter_physical = ceil(scaling_factor * BUTTON_DIAMETER);
-    DEBUG("scaling_factor is %.f, physical diameter is %d px\n",
-          scaling_factor, button_diameter_physical);
 
     if (!vistype)
         vistype = get_root_visual_type(screen);
 
-    /* Initialize cairo: Create one in-memory surface to render the unlock
-     * indicator on, create one XCB surface to actually draw (one or more,
-     * depending on the amount of screens) unlock indicators on. */
-    cairo_surface_t *widget_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, resolution[0], resolution[1]);
-    cairo_t *ctx = cairo_create(widget_surface);
+    uint32_t smallest_width = last_resolution[0];
+    uint32_t smallest_height = last_resolution[1];
 
+    if (xr_screens > 0) {
+        /* Composite the unlock indicator in the middle of each screen. */
+        for (int screen = 0; screen < xr_screens; screen++) {
+            if (xr_resolutions[screen].width < smallest_width) {
+                smallest_width = xr_resolutions[screen].width;
+            }
+            if (xr_resolutions[screen].height < smallest_height) {
+                smallest_height = xr_resolutions[screen].height;
+            }
+        }
+    }
+
+    /* Create one XCB surface to actually draw (one or more,
+     * depending on the amount of screens) unlock indicators on. */
     cairo_surface_t *xcb_output = cairo_xcb_surface_create(conn, bg_pixmap, vistype, resolution[0], resolution[1]);
     cairo_t *xcb_ctx = cairo_create(xcb_output);
 
@@ -201,6 +209,11 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
     cairo_set_source_rgb(xcb_ctx, rgb16[0] / 255.0, rgb16[1] / 255.0, rgb16[2] / 255.0);
     cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
     cairo_fill(xcb_ctx);
+
+
+    /* Create one in-memory surface to render the unlock indicator on */
+    cairo_surface_t *widget_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, smallest_width, smallest_height);
+    cairo_t *ctx = cairo_create(widget_surface);
 
     if (img) {
         if (!tile) {
@@ -384,23 +397,30 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         }
     }
 
+    /*
+     * Rendering to displays
+     */
     if (xr_screens > 0) {
         /* Composite the unlock indicator in the middle of each screen. */
         for (int screen = 0; screen < xr_screens; screen++) {
-            int x = (xr_resolutions[screen].x + ((xr_resolutions[screen].width / 2) - (button_diameter_physical / 2)));
-            int y = (xr_resolutions[screen].y + ((xr_resolutions[screen].height / 2) - (button_diameter_physical / 2)));
-            cairo_set_source_surface(xcb_ctx, widget_surface, x, y);
-            cairo_rectangle(xcb_ctx, x, y, button_diameter_physical, button_diameter_physical);
+            // Target location of the widget surface on this display
+            int x = (xr_resolutions[screen].x) + ((xr_resolutions[screen].width / 2)  - (smallest_width / 2));
+            int y = (xr_resolutions[screen].y) + ((xr_resolutions[screen].height / 2) - (smallest_height / 2));
+
+            // The widget surface, copying from its origin
+            cairo_set_source_surface(xcb_ctx, widget_surface, 0, 0);
+            // To the target location
+            cairo_rectangle(xcb_ctx, x, y, smallest_width, smallest_height);
             cairo_fill(xcb_ctx);
         }
     } else {
         /* We have no information about the screen sizes/positions, so we just
          * place the unlock indicator in the middle of the X root window and
          * hope for the best. */
-        int x = (last_resolution[0] / 2) - (button_diameter_physical / 2);
-        int y = (last_resolution[1] / 2) - (button_diameter_physical / 2);
+        int x = (last_resolution[0] / 2) - (smallest_width / 2);
+        int y = (last_resolution[1] / 2) - (smallest_height / 2);
         cairo_set_source_surface(xcb_ctx, widget_surface, x, y);
-        cairo_rectangle(xcb_ctx, x, y, button_diameter_physical, button_diameter_physical);
+        cairo_rectangle(xcb_ctx, x, y, smallest_width, smallest_height);
         cairo_fill(xcb_ctx);
     }
 
