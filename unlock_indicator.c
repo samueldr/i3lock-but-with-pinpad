@@ -406,8 +406,6 @@ void draw_pin_box(cairo_t *ctx) {
  *
  */
 void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
-    const double scaling_factor = get_dpi_value() / 96.0;
-
     if (!vistype)
         vistype = get_root_visual_type(screen);
 
@@ -493,7 +491,6 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
     /*
      * Drawing the pin box here
      */
-
     draw_pin_box(ctx);
 
 #if 0
