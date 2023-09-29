@@ -23,10 +23,15 @@
 #include "randr.h"
 #include "dpi.h"
 
+#define WITH_DEBUG_RENDER
+
 #define BUTTON_RADIUS 90
 #define BUTTON_SPACE (BUTTON_RADIUS + 5)
 #define BUTTON_CENTER (BUTTON_RADIUS + 5)
 #define BUTTON_DIAMETER (2 * BUTTON_SPACE)
+
+#define WIDGET_RATIO_WIDTH 11
+#define WIDGET_RATIO_HEIGHT 16
 
 /*******************************************************************************
  * Variables defined in i3lock.c.
@@ -336,6 +341,47 @@ static void draw_classic_wheel(cairo_t *ctx) {
     }
 }
 
+void draw_pin_pad(cairo_t *ctx) {
+    cairo_surface_t *surface = (cairo_surface_t*)cairo_get_target(ctx);
+    uint32_t widget_width = cairo_image_surface_get_width(surface);
+    uint32_t widget_height = cairo_image_surface_get_height(surface);
+    uint32_t x = 0;
+    uint32_t y = 0;
+
+    // Assumed to be the portrait layout for now...
+    y = widget_height - widget_width;
+    widget_height = widget_width;
+
+#ifdef WITH_DEBUG_RENDER
+    cairo_set_source_rgb(ctx, 0, 1, 1);
+    cairo_rectangle(ctx, x, y, widget_width, widget_height);
+    cairo_fill(ctx);
+#endif
+
+    cairo_push_group(ctx);
+    cairo_pop_group(ctx);
+}
+
+void draw_pin_box(cairo_t *ctx) {
+    cairo_surface_t *surface = (cairo_surface_t*)cairo_get_target(ctx);
+    uint32_t widget_width = cairo_image_surface_get_width(surface);
+    uint32_t widget_height = cairo_image_surface_get_height(surface);
+    uint32_t x = 0;
+    uint32_t y = 0;
+
+    // Assumed to be the portrait layout for now...
+    widget_height = widget_height - widget_width;
+
+#ifdef WITH_DEBUG_RENDER
+    cairo_set_source_rgb(ctx, 1, 1, 0);
+    cairo_rectangle(ctx, x, y, widget_width, widget_height);
+    cairo_fill(ctx);
+#endif
+
+    cairo_push_group(ctx);
+    cairo_pop_group(ctx);
+}
+
 /*
  * Draws global image with fill color onto a pixmap with the given
  * resolution and returns it.
@@ -346,6 +392,9 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
 
     if (!vistype)
         vistype = get_root_visual_type(screen);
+
+    uint32_t widget_width = last_resolution[0];
+    uint32_t widget_height = last_resolution[1];
 
     uint32_t smallest_width = last_resolution[0];
     uint32_t smallest_height = last_resolution[1];
@@ -360,6 +409,17 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
                 smallest_height = xr_resolutions[screen].height;
             }
         }
+    }
+
+    if (smallest_width < smallest_height) {
+        // Portrait
+        widget_height = ceil(smallest_width * WIDGET_RATIO_HEIGHT / WIDGET_RATIO_WIDTH);
+        widget_width = smallest_width;
+    }
+    else {
+        // Landscape
+        widget_width = ceil(smallest_height * WIDGET_RATIO_WIDTH / WIDGET_RATIO_HEIGHT);
+        widget_height = smallest_height;
     }
 
     /* Create one XCB surface to actually draw (one or more,
@@ -382,8 +442,14 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
 
 
     /* Create one in-memory surface to render the unlock indicator on */
-    cairo_surface_t *widget_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, smallest_width, smallest_height);
+    cairo_surface_t *widget_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, widget_width, widget_height);
     cairo_t *ctx = cairo_create(widget_surface);
+
+#ifdef WITH_DEBUG_RENDER
+    cairo_set_source_rgb(ctx, 1, 0, 1);
+    cairo_rectangle(ctx, 0, 0, widget_width, widget_height);
+    cairo_fill(ctx);
+#endif
 
     if (img) {
         if (!tile) {
@@ -401,7 +467,20 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         }
     }
 
+    /*
+     * Drawing the pin pad here
+     */
+    draw_pin_pad(ctx);
+
+    /*
+     * Drawing the pin box here
+     */
+
+    draw_pin_box(ctx);
+
+#if 0
     draw_classic_wheel(ctx);
+#endif
 
     /*
      * Rendering to displays
@@ -410,23 +489,23 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         /* Composite the unlock indicator in the middle of each screen. */
         for (int screen = 0; screen < xr_screens; screen++) {
             // Target location of the widget surface on this display
-            int x = (xr_resolutions[screen].x) + ((xr_resolutions[screen].width / 2)  - (smallest_width / 2));
-            int y = (xr_resolutions[screen].y) + ((xr_resolutions[screen].height / 2) - (smallest_height / 2));
+            int x = (xr_resolutions[screen].x) + ((xr_resolutions[screen].width / 2)  - (widget_width / 2));
+            int y = (xr_resolutions[screen].y) + ((xr_resolutions[screen].height / 2) - (widget_height / 2));
 
             // The widget surface, copying from its origin
-            cairo_set_source_surface(xcb_ctx, widget_surface, 0, 0);
+            cairo_set_source_surface(xcb_ctx, widget_surface, x, y);
             // To the target location
-            cairo_rectangle(xcb_ctx, x, y, smallest_width, smallest_height);
+            cairo_rectangle(xcb_ctx, x, y, widget_width, widget_height);
             cairo_fill(xcb_ctx);
         }
     } else {
         /* We have no information about the screen sizes/positions, so we just
          * place the unlock indicator in the middle of the X root window and
          * hope for the best. */
-        int x = (last_resolution[0] / 2) - (smallest_width / 2);
-        int y = (last_resolution[1] / 2) - (smallest_height / 2);
+        int x = (last_resolution[0] / 2) - (widget_width / 2);
+        int y = (last_resolution[1] / 2) - (widget_height / 2);
         cairo_set_source_surface(xcb_ctx, widget_surface, x, y);
-        cairo_rectangle(xcb_ctx, x, y, smallest_width, smallest_height);
+        cairo_rectangle(xcb_ctx, x, y, widget_width, widget_height);
         cairo_fill(xcb_ctx);
     }
 
