@@ -350,8 +350,9 @@ static void handle_button_press(xcb_button_press_event_t *event) {
     const int y = event->event_y;
     char buf[2];
 
-    // *backspace* key
-    if (/*TODO*/false) {
+    pad_button_t action = action_at(x, y);
+
+    if (action == PAD_BUTTON_BACKSPACE) {
         if (input_position == 0) {
             START_TIMER(clear_indicator_timeout, 1.0, clear_indicator_cb);
             unlock_state = STATE_NOTHING_TO_DELETE;
@@ -372,10 +373,10 @@ static void handle_button_press(xcb_button_press_event_t *event) {
         return;
     }
 
-    // *send* key
-    if (/*TODO*/false) {
+    if (action == PAD_BUTTON_SEND) {
         finish_input();
         skip_repeated_empty_password = true;
+
         return;
     }
 
@@ -388,11 +389,11 @@ static void handle_button_press(xcb_button_press_event_t *event) {
     }
 
     // Number keys
-    if (/*TODO*/false) {
+    if (action < 10) {
         if ((input_position + 8) >= (int)sizeof(password)) {
             return;
         }
-        snprintf(buf, 2, "%d", seq+1);
+        snprintf(buf, 2, "%d", action);
         memcpy(password + input_position, buf, 1);
         input_position += 1;
 
