@@ -367,6 +367,12 @@ static void draw_pad_text(
     cairo_close_path(ctx);
 }
 
+pad_button_t action_at(uint32_t x, uint32_t y) {
+    pad_button_t ret = PAD_BUTTON_INVALID;
+
+    return ret;
+}
+
 void draw_button(
     cairo_t *ctx
     , uint32_t widget_width

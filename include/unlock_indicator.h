@@ -23,9 +23,27 @@ typedef enum {
     STATE_I3LOCK_LOCK_FAILED = 4, /* i3lock failed to load */
 } auth_state_t;
 
+typedef enum {
+	PAD_BUTTON_INVALID = -1,
+	PAD_BUTTON_0  =  0,
+	PAD_BUTTON_1  =  1,
+	PAD_BUTTON_2  =  2,
+	PAD_BUTTON_3  =  3,
+	PAD_BUTTON_4  =  4,
+	PAD_BUTTON_5  =  5,
+	PAD_BUTTON_6  =  6,
+	PAD_BUTTON_7  =  7,
+	PAD_BUTTON_8  =  8,
+	PAD_BUTTON_9  =  9,
+	PAD_BUTTON_BACKSPACE = 10,
+	PAD_BUTTON_ZERO = 11,
+	PAD_BUTTON_SEND = 12,
+} pad_button_t;
+
 void free_bg_pixmap(void);
 void draw_image(xcb_pixmap_t bg_pixmap, uint32_t* resolution);
 void redraw_screen(void);
 void clear_indicator(void);
+pad_button_t action_at(uint32_t x, uint32_t y);
 
 #endif
