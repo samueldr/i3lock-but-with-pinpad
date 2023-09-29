@@ -366,7 +366,7 @@ static void handle_button_press(xcb_button_press_event_t *event) {
         /* Hide the unlock indicator after a bit if the password buffer is
          * empty. */
         START_TIMER(clear_indicator_timeout, 1.0, clear_indicator_cb);
-        unlock_state = STATE_BACKSPACE_ACTIVE;
+        unlock_state = STATE_PAD_BACKSPACE_ACTIVE;
         redraw_screen();
         unlock_state = STATE_KEY_PRESSED;
         return;
@@ -396,9 +396,13 @@ static void handle_button_press(xcb_button_press_event_t *event) {
         memcpy(password + input_position, buf, 1);
         input_position += 1;
 
-        unlock_state = STATE_KEY_ACTIVE;
+        unlock_state = STATE_PAD_ACTIVE;
         redraw_screen();
         unlock_state = STATE_KEY_PRESSED;
+
+        struct ev_timer *timeout = NULL;
+        START_TIMER(timeout, TSTAMP_N_SECS(0.25), redraw_timeout);
+        STOP_TIMER(clear_indicator_timeout);
     }
 
 #ifdef BUILD_WITH_EXTRA_INSECURE_PRINT
