@@ -166,70 +166,8 @@ static void check_modifier_keys(void) {
     }
 }
 
-/*
- * Draws global image with fill color onto a pixmap with the given
- * resolution and returns it.
- *
- */
-void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
+static void draw_classic_wheel(cairo_t *ctx) {
     const double scaling_factor = get_dpi_value() / 96.0;
-
-    if (!vistype)
-        vistype = get_root_visual_type(screen);
-
-    uint32_t smallest_width = last_resolution[0];
-    uint32_t smallest_height = last_resolution[1];
-
-    if (xr_screens > 0) {
-        /* Composite the unlock indicator in the middle of each screen. */
-        for (int screen = 0; screen < xr_screens; screen++) {
-            if (xr_resolutions[screen].width < smallest_width) {
-                smallest_width = xr_resolutions[screen].width;
-            }
-            if (xr_resolutions[screen].height < smallest_height) {
-                smallest_height = xr_resolutions[screen].height;
-            }
-        }
-    }
-
-    /* Create one XCB surface to actually draw (one or more,
-     * depending on the amount of screens) unlock indicators on. */
-    cairo_surface_t *xcb_output = cairo_xcb_surface_create(conn, bg_pixmap, vistype, resolution[0], resolution[1]);
-    cairo_t *xcb_ctx = cairo_create(xcb_output);
-
-    /* After the first iteration, the pixmap will still contain the previous
-     * contents. Explicitly clear the entire pixmap with the background color
-     * first to get back into a defined state: */
-    char strgroups[3][3] = {{color[0], color[1], '\0'},
-                            {color[2], color[3], '\0'},
-                            {color[4], color[5], '\0'}};
-    uint32_t rgb16[3] = {(strtol(strgroups[0], NULL, 16)),
-                         (strtol(strgroups[1], NULL, 16)),
-                         (strtol(strgroups[2], NULL, 16))};
-    cairo_set_source_rgb(xcb_ctx, rgb16[0] / 255.0, rgb16[1] / 255.0, rgb16[2] / 255.0);
-    cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
-    cairo_fill(xcb_ctx);
-
-
-    /* Create one in-memory surface to render the unlock indicator on */
-    cairo_surface_t *widget_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, smallest_width, smallest_height);
-    cairo_t *ctx = cairo_create(widget_surface);
-
-    if (img) {
-        if (!tile) {
-            cairo_set_source_surface(xcb_ctx, img, 0, 0);
-            cairo_paint(xcb_ctx);
-        } else {
-            /* create a pattern and fill a rectangle as big as the screen */
-            cairo_pattern_t *pattern;
-            pattern = cairo_pattern_create_for_surface(img);
-            cairo_set_source(xcb_ctx, pattern);
-            cairo_pattern_set_extend(pattern, CAIRO_EXTEND_REPEAT);
-            cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
-            cairo_fill(xcb_ctx);
-            cairo_pattern_destroy(pattern);
-        }
-    }
 
     if (unlock_indicator &&
         (unlock_state >= STATE_KEY_PRESSED || auth_state > STATE_AUTH_IDLE)) {
@@ -396,6 +334,74 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
             cairo_stroke(ctx);
         }
     }
+}
+
+/*
+ * Draws global image with fill color onto a pixmap with the given
+ * resolution and returns it.
+ *
+ */
+void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
+    const double scaling_factor = get_dpi_value() / 96.0;
+
+    if (!vistype)
+        vistype = get_root_visual_type(screen);
+
+    uint32_t smallest_width = last_resolution[0];
+    uint32_t smallest_height = last_resolution[1];
+
+    if (xr_screens > 0) {
+        /* Composite the unlock indicator in the middle of each screen. */
+        for (int screen = 0; screen < xr_screens; screen++) {
+            if (xr_resolutions[screen].width < smallest_width) {
+                smallest_width = xr_resolutions[screen].width;
+            }
+            if (xr_resolutions[screen].height < smallest_height) {
+                smallest_height = xr_resolutions[screen].height;
+            }
+        }
+    }
+
+    /* Create one XCB surface to actually draw (one or more,
+     * depending on the amount of screens) unlock indicators on. */
+    cairo_surface_t *xcb_output = cairo_xcb_surface_create(conn, bg_pixmap, vistype, resolution[0], resolution[1]);
+    cairo_t *xcb_ctx = cairo_create(xcb_output);
+
+    /* After the first iteration, the pixmap will still contain the previous
+     * contents. Explicitly clear the entire pixmap with the background color
+     * first to get back into a defined state: */
+    char strgroups[3][3] = {{color[0], color[1], '\0'},
+                            {color[2], color[3], '\0'},
+                            {color[4], color[5], '\0'}};
+    uint32_t rgb16[3] = {(strtol(strgroups[0], NULL, 16)),
+                         (strtol(strgroups[1], NULL, 16)),
+                         (strtol(strgroups[2], NULL, 16))};
+    cairo_set_source_rgb(xcb_ctx, rgb16[0] / 255.0, rgb16[1] / 255.0, rgb16[2] / 255.0);
+    cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
+    cairo_fill(xcb_ctx);
+
+
+    /* Create one in-memory surface to render the unlock indicator on */
+    cairo_surface_t *widget_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, smallest_width, smallest_height);
+    cairo_t *ctx = cairo_create(widget_surface);
+
+    if (img) {
+        if (!tile) {
+            cairo_set_source_surface(xcb_ctx, img, 0, 0);
+            cairo_paint(xcb_ctx);
+        } else {
+            /* create a pattern and fill a rectangle as big as the screen */
+            cairo_pattern_t *pattern;
+            pattern = cairo_pattern_create_for_surface(img);
+            cairo_set_source(xcb_ctx, pattern);
+            cairo_pattern_set_extend(pattern, CAIRO_EXTEND_REPEAT);
+            cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
+            cairo_fill(xcb_ctx);
+            cairo_pattern_destroy(pattern);
+        }
+    }
+
+    draw_classic_wheel(ctx);
 
     /*
      * Rendering to displays
