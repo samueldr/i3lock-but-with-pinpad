@@ -352,6 +352,10 @@ static void handle_button_press(xcb_button_press_event_t *event) {
 
     pad_button_t action = action_at(x, y);
 
+    if (action == PAD_BUTTON_INVALID) {
+        return;
+    }
+
     if (action == PAD_BUTTON_BACKSPACE) {
         if (input_position == 0) {
             START_TIMER(clear_indicator_timeout, 1.0, clear_indicator_cb);
