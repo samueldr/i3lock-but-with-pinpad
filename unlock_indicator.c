@@ -346,6 +346,37 @@ static void draw_classic_wheel(cairo_t *ctx) {
     }
 }
 
+static void set_widget_dimensions(uint32_t* widget_width, uint32_t* widget_height) {
+    uint32_t smallest_width = last_resolution[0];
+    uint32_t smallest_height = last_resolution[1];
+
+    if (xr_screens > 0) {
+        /* Composite the unlock indicator in the middle of each screen. */
+        for (int screen = 0; screen < xr_screens; screen++) {
+            if (xr_resolutions[screen].width < smallest_width) {
+                smallest_width = xr_resolutions[screen].width;
+            }
+            if (xr_resolutions[screen].height < smallest_height) {
+                smallest_height = xr_resolutions[screen].height;
+            }
+        }
+    }
+
+    if (smallest_width < smallest_height) {
+        // Portrait
+        *widget_height = ceil(smallest_width * WIDGET_RATIO_HEIGHT / WIDGET_RATIO_WIDTH);
+        *widget_width = smallest_width;
+    }
+    else {
+        // Landscape
+        *widget_width = ceil(smallest_height * WIDGET_RATIO_WIDTH / WIDGET_RATIO_HEIGHT);
+        *widget_height = smallest_height;
+    }
+
+    *widget_height *= 0.9;
+    *widget_width  *= 0.9;
+}
+
 static void draw_pad_text(
     cairo_t *ctx
     , const char *text
@@ -550,31 +581,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
     uint32_t widget_width = last_resolution[0];
     uint32_t widget_height = last_resolution[1];
 
-    uint32_t smallest_width = last_resolution[0];
-    uint32_t smallest_height = last_resolution[1];
-
-    if (xr_screens > 0) {
-        /* Composite the unlock indicator in the middle of each screen. */
-        for (int screen = 0; screen < xr_screens; screen++) {
-            if (xr_resolutions[screen].width < smallest_width) {
-                smallest_width = xr_resolutions[screen].width;
-            }
-            if (xr_resolutions[screen].height < smallest_height) {
-                smallest_height = xr_resolutions[screen].height;
-            }
-        }
-    }
-
-    if (smallest_width < smallest_height) {
-        // Portrait
-        widget_height = ceil(smallest_width * WIDGET_RATIO_HEIGHT / WIDGET_RATIO_WIDTH);
-        widget_width = smallest_width;
-    }
-    else {
-        // Landscape
-        widget_width = ceil(smallest_height * WIDGET_RATIO_WIDTH / WIDGET_RATIO_HEIGHT);
-        widget_height = smallest_height;
-    }
+    set_widget_dimensions(&widget_width, &widget_height);
 
     /* Create one XCB surface to actually draw (one or more,
      * depending on the amount of screens) unlock indicators on. */
@@ -593,10 +600,6 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
     cairo_set_source_rgb(xcb_ctx, rgb16[0] / 255.0, rgb16[1] / 255.0, rgb16[2] / 255.0);
     cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
     cairo_fill(xcb_ctx);
-
-
-    widget_height *= 0.9;
-    widget_width *= 0.9;
 
     /* Create one in-memory surface to render the unlock indicator on */
     cairo_surface_t *widget_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, widget_width, widget_height);
