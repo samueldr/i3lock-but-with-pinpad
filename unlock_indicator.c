@@ -582,7 +582,7 @@ void draw_pin_box(cairo_t *ctx) {
             strncpy(buf, "Locking…", 512);
             break;
         case STATE_AUTH_WRONG:
-            strncpy(buf, "Wrong!", 512);
+            strncpy(buf, "Wrong PIN", 512);
             break;
         case STATE_I3LOCK_LOCK_FAILED:
             strncpy(buf, "Lock failed!", 512);
