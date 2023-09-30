@@ -36,6 +36,14 @@
 #define WIDGET_RATIO_HEIGHT 16
 #define WIDGET_PADDING 16
 
+#define COLOR_RGB_WHITE 1, 1, 1
+#define COLOR_RGB_BLACK 0, 0, 0
+
+// TODO: better color selection than a define :/
+#ifndef COLOR_RGB_SELECTED
+#define COLOR_RGB_SELECTED COLOR_RGB_WHITE
+#endif
+
 /*******************************************************************************
  * Variables defined in i3lock.c.
  ******************************************************************************/
@@ -490,17 +498,17 @@ void draw_button(
     }
 
     cairo_rectangle(ctx, x, y, button_width, button_height);
-    cairo_set_source_rgba(ctx, 0, 0, 0, 1);
+    cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, 1);
     cairo_stroke(ctx);
 
     cairo_rectangle(ctx, x, y, button_width, button_height);
-    cairo_set_source_rgba(ctx, 0, 0, 0, 0.1);
+    cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, 0.1);
     if (pressed) {
-        cairo_set_source_rgba(ctx, 0, 0, 0, 0.4);
+        cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, 0.4);
     }
     cairo_fill(ctx);
 
-    cairo_set_source_rgba(ctx, 0, 0, 0, 1);
+    cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, 1);
     uint32_t middle = button_height / 2 - font_size/2 + 4;
 
     draw_pad_text(ctx, text, x, y + middle, button_width, true);
@@ -592,8 +600,7 @@ void draw_pin_box(cairo_t *ctx) {
         default:
     };
 
-    // TODO Detect dark vs. light !!
-    cairo_set_source_rgba(ctx, 0., 0., 0., opa);
+    cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, opa);
 
     cairo_select_font_face(ctx, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(ctx, font_size);
