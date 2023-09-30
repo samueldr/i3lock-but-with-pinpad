@@ -410,6 +410,72 @@ static void draw_pad_text(
 
 pad_button_t action_at(uint32_t x, uint32_t y) {
     pad_button_t ret = PAD_BUTTON_INVALID;
+    int screen = -1;
+    uint32_t widget_width = last_resolution[0];
+    uint32_t widget_height = last_resolution[1];
+    uint32_t widget_x = 0;
+    uint32_t widget_y = 0;
+    uint32_t action_x = 0;
+    uint32_t action_y = 0;
+
+    /*
+     * Situate the event's screen
+     */
+    for (screen = 0; screen < xr_screens; screen++) {
+        if (
+               x > xr_resolutions[screen].x
+            && x < xr_resolutions[screen].x + xr_resolutions[screen].width
+            && y > xr_resolutions[screen].y
+            && y < xr_resolutions[screen].y + xr_resolutions[screen].height
+        ) {
+            break;
+        }
+    }
+
+    /*
+     * On the screen, where the widget is
+     */
+
+    if (screen >= xr_screens) {
+        DEBUG("!!!! Could not find screen!!\n");
+        screen = 0;
+    }
+
+    /*
+     * Find the whole container widget position and size
+     */
+    set_widget_dimensions(&widget_width, &widget_height);
+    set_widget_screen_position(xr_resolutions[screen], &widget_x, &widget_y);
+
+    // XXX This needs to be extracted into widget positioning/sizing logic
+    // XXX see draw_pin_pad !!
+    // Assumed to be the portrait layout for now...
+    widget_y += widget_height - widget_width;
+    widget_height = widget_width;
+
+    widget_height -= 2 * WIDGET_PADDING;
+    widget_width  -= 2 * WIDGET_PADDING;
+    widget_x += WIDGET_PADDING;
+    widget_y += WIDGET_PADDING;
+    // ^^^^ XXX draw_pin_pad
+
+    if (!(
+           x > widget_x
+        && x < widget_x + widget_width
+        && y > widget_y
+        && y < widget_y + widget_height
+    )) {
+        return ret;
+    }
+
+    action_x = x - widget_x;
+    action_y = y - widget_y;
+
+    ret = 1 + floor(3 * action_x / widget_width) + 3 * floor( 4 * action_y / widget_height);
+
+    if (ret == PAD_BUTTON_ZERO) {
+        ret = 0;
+    }
 
     return ret;
 }
@@ -443,13 +509,13 @@ void draw_button(
 
     num += 1;
     switch (num) {
-        case 10:
+        case PAD_BUTTON_BACKSPACE:
             strncpy(text, "<=", 16);
             break;
-        case 11:
+        case PAD_BUTTON_ZERO:
             strncpy(text, "0", 16);
             break;
-        case 12:
+        case PAD_BUTTON_SEND:
             strncpy(text, ">>", 16);
             break;
         default:
