@@ -507,12 +507,13 @@ void draw_button(
 }
 
 void draw_pin_pad(cairo_t *ctx) {
+    const double scaling_factor = get_dpi_value() / 96.0;
     cairo_surface_t *surface = (cairo_surface_t*)cairo_get_target(ctx);
     uint32_t widget_width = cairo_image_surface_get_width(surface);
     uint32_t widget_height = cairo_image_surface_get_height(surface);
     uint32_t x = 0;
     uint32_t y = 0;
-    double font_size = 32;
+    double font_size = 32 * scaling_factor;
 
     // Assumed to be the portrait layout for now...
     y = widget_height - widget_width;
@@ -544,6 +545,7 @@ void draw_pin_pad(cairo_t *ctx) {
 }
 
 void draw_pin_box(cairo_t *ctx) {
+    const double scaling_factor = get_dpi_value() / 96.0;
     static char buf[512] = "";
     cairo_surface_t *surface = (cairo_surface_t*)cairo_get_target(ctx);
     uint32_t widget_width = cairo_image_surface_get_width(surface);
@@ -551,7 +553,7 @@ void draw_pin_box(cairo_t *ctx) {
     uint32_t x = 0;
     uint32_t y = 0;
     double opa = 1;
-    double font_size = 48;
+    double font_size = 48 * scaling_factor;
 
     // Assumed to be the portrait layout for now...
     widget_height = widget_height - widget_width;
