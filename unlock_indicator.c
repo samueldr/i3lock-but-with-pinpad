@@ -376,6 +376,16 @@ static void set_widget_dimensions(uint32_t* widget_width, uint32_t* widget_heigh
     *widget_height *= 0.9;
     *widget_width  *= 0.9;
 }
+static void set_widget_screen_position(Rect display, uint32_t *x, uint32_t *y) {
+    uint32_t widget_width = 0;
+    uint32_t widget_height = 0;
+
+    set_widget_dimensions(&widget_width, &widget_height);
+
+    // Target location of the widget surface on this display
+    *x = (display.x) + ((display.width / 2)  - (widget_width / 2));
+    *y = (display.y) + ((display.height / 2) - (widget_height / 2));
+}
 
 static void draw_pad_text(
     cairo_t *ctx
@@ -647,9 +657,8 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
     if (xr_screens > 0) {
         /* Composite the unlock indicator in the middle of each screen. */
         for (int screen = 0; screen < xr_screens; screen++) {
-            // Target location of the widget surface on this display
-            int x = (xr_resolutions[screen].x) + ((xr_resolutions[screen].width / 2)  - (widget_width / 2));
-            int y = (xr_resolutions[screen].y) + ((xr_resolutions[screen].height / 2) - (widget_height / 2));
+            int x, y;
+            set_widget_screen_position(xr_resolutions[screen], &x, &y);
 
             // The widget surface, copying from its origin
             cairo_set_source_surface(xcb_ctx, widget_surface, x, y);
