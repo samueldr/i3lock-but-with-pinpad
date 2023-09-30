@@ -130,52 +130,6 @@ static void display_button_text(
     cairo_close_path(ctx);
 }
 
-static void update_layout_string() {
-    if (layout_string) {
-        free(layout_string);
-        layout_string = NULL;
-    }
-    xkb_layout_index_t num_layouts = xkb_keymap_num_layouts(xkb_keymap);
-    for (xkb_layout_index_t i = 0; i < num_layouts; ++i) {
-        if (xkb_state_layout_index_is_active(xkb_state, i, XKB_STATE_LAYOUT_EFFECTIVE)) {
-            const char *name = xkb_keymap_layout_get_name(xkb_keymap, i);
-            if (name) {
-                string_append(&layout_string, name);
-            }
-        }
-    }
-}
-
-/* check_modifier_keys describes the currently active modifiers (Caps Lock, Alt,
-   Num Lock or Super) in the modifier_string variable. */
-static void check_modifier_keys(void) {
-    xkb_mod_index_t idx, num_mods;
-    const char *mod_name;
-
-    num_mods = xkb_keymap_num_mods(xkb_keymap);
-
-    for (idx = 0; idx < num_mods; idx++) {
-        if (!xkb_state_mod_index_is_active(xkb_state, idx, XKB_STATE_MODS_EFFECTIVE))
-            continue;
-
-        mod_name = xkb_keymap_mod_get_name(xkb_keymap, idx);
-        if (mod_name == NULL)
-            continue;
-
-        /* Replace certain xkb names with nicer, human-readable ones. */
-        if (strcmp(mod_name, XKB_MOD_NAME_CAPS) == 0) {
-            mod_name = "Caps Lock";
-        } else if (strcmp(mod_name, XKB_MOD_NAME_NUM) == 0) {
-            mod_name = "Num Lock";
-        } else {
-            /* Show only Caps Lock and Num Lock, other modifiers (e.g. Shift)
-             * leak state about the password. */
-            continue;
-        }
-        string_append(&modifier_string, mod_name);
-    }
-}
-
 static void draw_classic_wheel(cairo_t *ctx) {
     const double scaling_factor = get_dpi_value() / 96.0;
 
@@ -759,6 +713,52 @@ static xcb_pixmap_t bg_pixmap = XCB_NONE;
 void free_bg_pixmap(void) {
     xcb_free_pixmap(conn, bg_pixmap);
     bg_pixmap = XCB_NONE;
+}
+
+/* check_modifier_keys describes the currently active modifiers (Caps Lock, Alt,
+   Num Lock or Super) in the modifier_string variable. */
+static void check_modifier_keys(void) {
+    xkb_mod_index_t idx, num_mods;
+    const char *mod_name;
+
+    num_mods = xkb_keymap_num_mods(xkb_keymap);
+
+    for (idx = 0; idx < num_mods; idx++) {
+        if (!xkb_state_mod_index_is_active(xkb_state, idx, XKB_STATE_MODS_EFFECTIVE))
+            continue;
+
+        mod_name = xkb_keymap_mod_get_name(xkb_keymap, idx);
+        if (mod_name == NULL)
+            continue;
+
+        /* Replace certain xkb names with nicer, human-readable ones. */
+        if (strcmp(mod_name, XKB_MOD_NAME_CAPS) == 0) {
+            mod_name = "Caps Lock";
+        } else if (strcmp(mod_name, XKB_MOD_NAME_NUM) == 0) {
+            mod_name = "Num Lock";
+        } else {
+            /* Show only Caps Lock and Num Lock, other modifiers (e.g. Shift)
+             * leak state about the password. */
+            continue;
+        }
+        string_append(&modifier_string, mod_name);
+    }
+}
+
+static void update_layout_string() {
+    if (layout_string) {
+        free(layout_string);
+        layout_string = NULL;
+    }
+    xkb_layout_index_t num_layouts = xkb_keymap_num_layouts(xkb_keymap);
+    for (xkb_layout_index_t i = 0; i < num_layouts; ++i) {
+        if (xkb_state_layout_index_is_active(xkb_state, i, XKB_STATE_LAYOUT_EFFECTIVE)) {
+            const char *name = xkb_keymap_layout_get_name(xkb_keymap, i);
+            if (name) {
+                string_append(&layout_string, name);
+            }
+        }
+    }
 }
 
 /*
