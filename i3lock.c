@@ -457,6 +457,22 @@ static void handle_key_press(xcb_key_press_event_t *event) {
                 display_on();
             }
             return;
+        /* Don't wake for some keys... */
+        case XKB_KEY_XF86AudioLowerVolume:
+        case XKB_KEY_XF86AudioRaiseVolume:
+        case XKB_KEY_F1:
+        case XKB_KEY_F2:
+        case XKB_KEY_F3:
+        case XKB_KEY_F4:
+        case XKB_KEY_F5:
+        case XKB_KEY_F6:
+        case XKB_KEY_F7:
+        case XKB_KEY_F8:
+        case XKB_KEY_F9:  /* Volume down on chromeOS */
+        case XKB_KEY_F10: /* Volume up on chromeOS */
+        case XKB_KEY_F11:
+        case XKB_KEY_F12:
+            return;
         default:
             if (!is_display_on()) {
                 /* Ensure our tooling knows about the display state */
