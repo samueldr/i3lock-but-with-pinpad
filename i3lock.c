@@ -369,7 +369,7 @@ static bool skip_without_validation(void) {
 static void handle_button_press(xcb_button_press_event_t *event) {
     const int x = event->event_x;
     const int y = event->event_y;
-    char buf[2];
+    char buf[12];
 
     pad_button_t action = action_at(x, y);
 
