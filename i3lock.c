@@ -77,6 +77,7 @@ struct ev_loop *main_loop;
 static struct ev_timer *clear_auth_wrong_timeout;
 static struct ev_timer *clear_indicator_timeout;
 static struct ev_timer *discard_passwd_timeout;
+static struct ev_timer *redraw_screen_timeout;;
 extern unlock_state_t unlock_state;
 extern auth_state_t auth_state;
 int failed_attempts = 0;
@@ -268,6 +269,11 @@ static void clear_input(void) {
 static void discard_passwd_cb(EV_P_ ev_timer *w, int revents) {
     clear_input();
     STOP_TIMER(discard_passwd_timeout);
+}
+
+static void redraw_screen_cb(EV_P_ ev_timer *w, int revents) {
+    START_TIMER(redraw_screen_timeout, TSTAMP_N_SECS(1), redraw_screen_cb);
+    redraw_screen();
 }
 
 static void input_done(void) {
@@ -1324,6 +1330,7 @@ int main(int argc, char *argv[]) {
 
     /* Explicitly call the screen redraw in case "locking…" message was displayed */
     auth_state = STATE_AUTH_IDLE;
+    START_TIMER(redraw_screen_timeout, TSTAMP_N_SECS(1), redraw_screen_cb);
     redraw_screen();
 
     struct ev_io *xcb_watcher = calloc(sizeof(struct ev_io), 1);
