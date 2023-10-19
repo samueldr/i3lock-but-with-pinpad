@@ -46,7 +46,7 @@
 #define COLOR_RGB_SELECTED COLOR_RGB_WHITE
 #endif
 
-#define FONT_CLOCK_MULTIPLIER (24/10.0)
+#define FONT_CLOCK_MULTIPLIER (28/10.0)
 
 #ifndef FONT_SELECTED
 #define FONT_SELECTED "Roboto Condensed Light"
