@@ -42,7 +42,24 @@ bool is_display_on() {
 }
 
 void input_mouse_on() {
+	system(
+		//"set -x;"
+		"for i in "
+			"$(xinput list | grep -v 'Virtual core' | grep 'floating\\s*slave' | sed --regexp-extended 's;.*id=([0-9]+)\\s*\\[.*;\\1;')"
+		"; do "
+		"xinput reattach $i 2;"
+		"done"
+	);
 }
 
 void input_mouse_off() {
+	system(
+		//"set -x;"
+		"for i in "
+			"$(xinput list | grep -v 'Virtual core' | grep '\\s\\+pointer' | sed --regexp-extended 's;.*id=([0-9]+)\\s*\\[.*;\\1;')"
+		"; do "
+		"xinput float $i;"
+		"done"
+	);
 }
+
