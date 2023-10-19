@@ -216,6 +216,8 @@ bool grab_pointer_and_keyboard(xcb_connection_t *conn, xcb_screen_t *screen, xcb
     xcb_grab_keyboard_cookie_t kcookie;
     xcb_grab_keyboard_reply_t *kreply;
 
+    const int evmask = XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_POINTER_MOTION;
+
     const suseconds_t screen_redraw_timeout = 100000; /* 100ms */
 
     /* Using few variables to trigger a redraw_screen() if too many tries */
@@ -230,7 +232,7 @@ bool grab_pointer_and_keyboard(xcb_connection_t *conn, xcb_screen_t *screen, xcb
             conn,
             false,               /* get all pointer events specified by the following mask */
             screen->root,        /* grab the root window */
-            XCB_EVENT_MASK_BUTTON_PRESS, /* which events to let through */
+            evmask,              /* which events to let through */
             XCB_GRAB_MODE_ASYNC, /* pointer events should continue as normal */
             XCB_GRAB_MODE_ASYNC, /* keyboard mode */
             XCB_NONE,            /* confine_to = in which window should the cursor stay */

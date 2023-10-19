@@ -46,6 +46,7 @@
 #include "unlock_indicator.h"
 #include "randr.h"
 #include "dpi.h"
+#include "system.h"
 
 #define TSTAMP_N_SECS(n) (n * 1.0)
 #define TSTAMP_N_MINS(n) (60 * TSTAMP_N_SECS(n))
@@ -276,6 +277,10 @@ static void redraw_screen_cb(EV_P_ ev_timer *w, int revents) {
     redraw_screen();
 }
 
+static void display_off_cb(EV_P_ ev_timer *w, int revents) {
+    display_off();
+}
+
 static void input_done(void) {
     STOP_TIMER(clear_auth_wrong_timeout);
     auth_state = STATE_AUTH_VERIFY;
@@ -437,6 +442,29 @@ static void handle_key_press(xcb_key_press_event_t *event) {
     ksym = xkb_state_key_get_one_sym(xkb_state, event->detail);
     ctrl = xkb_state_mod_name_is_active(xkb_state, XKB_MOD_NAME_CTRL, XKB_STATE_MODS_DEPRESSED);
 
+    switch(ksym) {
+        case XKB_KEY_u:
+        case XKB_KEY_Escape:
+            if (ksym == XKB_KEY_u && !ctrl) { break; }
+
+            if (is_display_on()) {
+                clear_input();
+                clear_indicator();
+                display_off();
+            }
+            else {
+                /* Ensure our tooling knows about the display state */
+                display_on();
+            }
+            return;
+        default:
+            if (!is_display_on()) {
+                /* Ensure our tooling knows about the display state */
+                display_on();
+            }
+    }
+
+
     /* The buffer will be null-terminated, so n >= 2 for 1 actual character. */
     memset(buffer, '\0', sizeof(buffer));
 
@@ -495,19 +523,6 @@ static void handle_key_press(xcb_key_press_event_t *event) {
     }
 
     switch (ksym) {
-        case XKB_KEY_u:
-        case XKB_KEY_Escape:
-            if ((ksym == XKB_KEY_u && ctrl) ||
-                ksym == XKB_KEY_Escape) {
-                DEBUG("C-u pressed\n");
-                clear_input();
-                /* Also hide the unlock indicator */
-                if (unlock_indicator)
-                    clear_indicator();
-                return;
-            }
-            break;
-
         case XKB_KEY_Delete:
         case XKB_KEY_KP_Delete:
             /* Deleting forward doesn’t make sense, as i3lock doesn’t allow you
@@ -949,6 +964,13 @@ static void xcb_check_cb(EV_P_ ev_check *w, int revents) {
         /* Strip off the highest bit (set if the event is generated) */
         int type = (event->response_type & 0x7F);
 
+        if (type == XCB_BUTTON_PRESS || type == XCB_MOTION_NOTIFY) {
+            /* Ensures the display is on, in case of desync */
+            if (!is_display_on()) {
+                display_on();
+            }
+        }
+
         switch (type) {
             case XCB_BUTTON_PRESS:
                 handle_button_press((xcb_button_press_event_t *)event);
@@ -956,6 +978,13 @@ static void xcb_check_cb(EV_P_ ev_check *w, int revents) {
 
             case XCB_KEY_PRESS:
                 handle_key_press((xcb_key_press_event_t *)event);
+                break;
+
+            case XCB_KEY_RELEASE:
+                /* Workaround for e.g. key release doing an event waking up the display *sigh* */
+                if (!is_display_on()) {
+                    display_off();
+                }
                 break;
 
             case XCB_VISIBILITY_NOTIFY:
@@ -1272,6 +1301,8 @@ int main(int argc, char *argv[]) {
 
     free(image_path);
     free(image_raw_format);
+
+    display_off();
 
     /* Pixmap on which the image is rendered to (if any) */
     xcb_pixmap_t bg_pixmap = create_bg_pixmap(conn, screen, last_resolution, color);
