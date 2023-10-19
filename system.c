@@ -19,6 +19,7 @@ extern bool debug_mode;
 bool display_state = true;
 
 static void inactivity_cb(EV_P_ ev_timer *w, int revents) {
+	system("systemctl suspend");
 	START_TIMER(inactivity_timeout, TSTAMP_N_SECS(SUSPEND_AFTER_SEC), inactivity_cb);
 };
 
