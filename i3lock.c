@@ -287,10 +287,6 @@ static void inactivity_cb(EV_P_ ev_timer *w, int revents) {
     display_off();
 }
 
-static void display_off_cb(EV_P_ ev_timer *w, int revents) {
-    display_off();
-}
-
 static void input_done(void) {
     STOP_TIMER(clear_auth_wrong_timeout);
     auth_state = STATE_AUTH_VERIFY;
