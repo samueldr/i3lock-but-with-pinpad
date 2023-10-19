@@ -24,6 +24,8 @@ static bool is_connected_to_charger() {
 		"("
 			"upower -i '/org/freedesktop/UPower/devices/DisplayDevice' | grep 'state:\\s*charging'"
 			" || "
+			"upower -i '/org/freedesktop/UPower/devices/DisplayDevice' | grep 'state:\\s*fully-charged'"
+			" || "
 			"! upower -i '/org/freedesktop/UPower/devices/DisplayDevice' | grep 'time to empty:'"
 		")"
 		" > /dev/null"
