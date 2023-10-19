@@ -2,6 +2,10 @@
 #define _SYSTEM_H
 #include <stdbool.h>
 
+#ifndef INACTIVE_AFTER_SEC
+#define INACTIVE_AFTER_SEC 15
+#endif
+
 #ifndef SUSPEND_AFTER_SEC
 #define SUSPEND_AFTER_SEC 60
 #endif

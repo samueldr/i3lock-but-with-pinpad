@@ -79,6 +79,7 @@ static struct ev_timer *clear_auth_wrong_timeout;
 static struct ev_timer *clear_indicator_timeout;
 static struct ev_timer *discard_passwd_timeout;
 static struct ev_timer *redraw_screen_timeout;;
+static struct ev_timer *inactivity_timeout;
 extern unlock_state_t unlock_state;
 extern auth_state_t auth_state;
 int failed_attempts = 0;
@@ -280,6 +281,10 @@ static void redraw_screen_cb(EV_P_ ev_timer *w, int revents) {
     else {
         redraw_screen();
     }
+}
+
+static void inactivity_cb(EV_P_ ev_timer *w, int revents) {
+    display_off();
 }
 
 static void display_off_cb(EV_P_ ev_timer *w, int revents) {
@@ -985,11 +990,13 @@ static void xcb_check_cb(EV_P_ ev_check *w, int revents) {
         /* Strip off the highest bit (set if the event is generated) */
         int type = (event->response_type & 0x7F);
 
-        if (type == XCB_BUTTON_PRESS || type == XCB_MOTION_NOTIFY) {
+        if (type == XCB_BUTTON_PRESS || type == XCB_MOTION_NOTIFY || type == XCB_KEY_PRESS) {
             /* Ensures the display is on, in case of desync */
             if (!is_display_on()) {
                 display_on();
             }
+            /* Kick back the inactivity_timeout */
+            START_TIMER(inactivity_timeout, TSTAMP_N_SECS(INACTIVE_AFTER_SEC), inactivity_cb);
         }
 
         switch (type) {
@@ -1384,6 +1391,9 @@ int main(int argc, char *argv[]) {
     signal(SIGTERM, system_signal_handler);
     signal(SIGINT, system_signal_handler);
     atexit(system_teardown);
+
+    /* Start the inactivity timer */
+    START_TIMER(inactivity_timeout, TSTAMP_N_SECS(INACTIVE_AFTER_SEC), inactivity_cb);
 
     /* Explicitly call the screen redraw in case "locking…" message was displayed */
     auth_state = STATE_AUTH_IDLE;
