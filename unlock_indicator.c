@@ -324,9 +324,11 @@ void draw_button(
         pressed = true;
     }
 
-    cairo_rectangle(ctx, x, y, button_width, button_height);
-    cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, 1);
-    cairo_stroke(ctx);
+    if (pressed) {
+        cairo_rectangle(ctx, x, y, button_width, button_height);
+        cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, 1);
+        cairo_stroke(ctx);
+    }
 
     cairo_rectangle(ctx, x, y, button_width, button_height);
     cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, 0.1);
