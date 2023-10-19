@@ -16,6 +16,7 @@
 #include <ev.h>
 #include <cairo.h>
 #include <cairo/cairo-xcb.h>
+#include <time.h>
 
 #include "i3lock.h"
 #include "xcb.h"
@@ -44,6 +45,8 @@
 #ifndef COLOR_RGB_SELECTED
 #define COLOR_RGB_SELECTED COLOR_RGB_WHITE
 #endif
+
+#define FONT_CLOCK_MULTIPLIER (24/10.0)
 
 #ifndef FONT_SELECTED
 #define FONT_SELECTED "Roboto Condensed Light"
@@ -313,6 +316,14 @@ static void draw_classic_wheel(cairo_t *ctx) {
     }
 }
 
+static void format_time(char* buf) {
+    time_t t;
+    struct tm *tmp;
+    t = time(NULL);
+    tmp = localtime(&t);
+    strftime(buf, 16, "%H:%M", tmp);
+}
+
 static void set_widget_dimensions(uint32_t* widget_width, uint32_t* widget_height) {
     uint32_t smallest_width = last_resolution[0];
     uint32_t smallest_height = last_resolution[1];
@@ -565,6 +576,7 @@ void draw_pin_box(cairo_t *ctx) {
     uint32_t widget_height = cairo_image_surface_get_height(surface);
     uint32_t x = 0;
     uint32_t y = 0;
+    bool show_clock = true;
     double opa = 1;
     double font_size = 48 * scaling_factor;
 
@@ -585,6 +597,7 @@ void draw_pin_box(cairo_t *ctx) {
     buf[0] = 0;
     // TODO: replace with unicode string handling, and use 'BLACK CIRCLE' (U+25CF) ●●●●●●●
     for (int i = 0; i < input_position; i++) {
+        show_clock = false;
         buf[i] = '*';
         buf[i+1] = '\0';
     }
@@ -594,12 +607,15 @@ void draw_pin_box(cairo_t *ctx) {
             opa = 0.5;
             break;
         case STATE_AUTH_LOCK:
+            show_clock = false;
             strncpy(buf, "Locking…", 512);
             break;
         case STATE_AUTH_WRONG:
+            show_clock = false;
             strncpy(buf, "Wrong PIN", 512);
             break;
         case STATE_I3LOCK_LOCK_FAILED:
+            show_clock = false;
             strncpy(buf, "Lock failed!", 512);
             break;
         default:
@@ -607,10 +623,22 @@ void draw_pin_box(cairo_t *ctx) {
 
     cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, opa);
 
-    cairo_select_font_face(ctx, FONT_SELECTED, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(ctx, font_size);
-    uint32_t middle = widget_height / 2 - font_size/2;
-    draw_pad_text(ctx, buf, x, y + middle, widget_width, true);
+    if (show_clock) {
+        format_time(buf);
+        font_size *= FONT_CLOCK_MULTIPLIER;
+        /* Draw the pin  */
+        cairo_select_font_face(ctx, FONT_SELECTED, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+        cairo_set_font_size(ctx, font_size);
+        uint32_t middle = widget_height / 2 - font_size/2;
+        draw_pad_text(ctx, buf, x, y + middle, widget_width, true);
+    }
+    else {
+        /* Draw the pin entry characters */
+        cairo_select_font_face(ctx, FONT_SELECTED, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+        cairo_set_font_size(ctx, font_size);
+        uint32_t middle = widget_height / 2 - font_size/2;
+        draw_pad_text(ctx, buf, x, y + middle, widget_width, true);
+    }
 }
 
 /*
