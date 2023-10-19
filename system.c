@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <ev.h>
 #include "system.h"
 #include "i3lock.h"
