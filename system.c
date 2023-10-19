@@ -89,7 +89,10 @@ void system_teardown() {
 	display_on();
 }
 
-void system_signal_handler(const int signum) {
+void system_teardown_handler(const int unused) {
 	system_teardown();
 	exit(7);
+}
+void system_usr1_handler(const int unused) {
+	display_on();
 }

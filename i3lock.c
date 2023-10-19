@@ -1387,8 +1387,9 @@ int main(int argc, char *argv[]) {
     /* Relies on the event loop for timeouts and stuff */
     display_off();
 
-    signal(SIGTERM, system_signal_handler);
-    signal(SIGINT, system_signal_handler);
+    signal(SIGUSR1, system_usr1_handler);
+    signal(SIGTERM, system_teardown_handler);
+    signal(SIGINT,  system_teardown_handler);
     atexit(system_teardown);
 
     /* Start the inactivity timer */

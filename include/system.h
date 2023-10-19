@@ -19,6 +19,7 @@ void input_mouse_on();
 void input_mouse_off();
 
 void system_teardown();
-void system_signal_handler(const int signum);
+void system_teardown_handler(const int);
+void system_usr1_handler(const int);
 
 #endif
