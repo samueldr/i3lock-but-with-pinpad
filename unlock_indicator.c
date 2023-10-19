@@ -45,6 +45,10 @@
 #define COLOR_RGB_SELECTED COLOR_RGB_WHITE
 #endif
 
+#ifndef FONT_SELECTED
+#define FONT_SELECTED "Roboto Condensed Light"
+#endif
+
 /*******************************************************************************
  * Variables defined in i3lock.c.
  ******************************************************************************/
@@ -539,7 +543,7 @@ void draw_pin_pad(cairo_t *ctx) {
     cairo_fill(ctx);
 #endif
 
-    cairo_select_font_face(ctx, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_select_font_face(ctx, FONT_SELECTED, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(ctx, font_size);
 
     /*
@@ -603,7 +607,7 @@ void draw_pin_box(cairo_t *ctx) {
 
     cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, opa);
 
-    cairo_select_font_face(ctx, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_select_font_face(ctx, FONT_SELECTED, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(ctx, font_size);
     uint32_t middle = widget_height / 2 - font_size/2;
     draw_pad_text(ctx, buf, x, y + middle, widget_width, true);
