@@ -27,6 +27,7 @@
 #define WITH_DEBUG_RENDER
 #endif
 
+#define WIDGET_UI_PROPORTION (60/100.0)
 #define BUTTON_RADIUS 90
 #define BUTTON_SPACE (BUTTON_RADIUS + 5)
 #define BUTTON_CENTER (BUTTON_RADIUS + 5)
@@ -335,8 +336,8 @@ static void set_widget_dimensions(uint32_t* widget_width, uint32_t* widget_heigh
         *widget_height = smallest_height;
     }
 
-    *widget_height *= 0.9;
-    *widget_width  *= 0.9;
+    *widget_height *= WIDGET_UI_PROPORTION;
+    *widget_width  *= WIDGET_UI_PROPORTION;
 }
 static void set_widget_screen_position(Rect display, uint32_t *x, uint32_t *y) {
     uint32_t widget_width = 0;
