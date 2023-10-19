@@ -19,8 +19,29 @@ extern bool debug_mode;
 /* Display assued to be on at start */
 bool display_state = true;
 
+static bool is_connected_to_charger() {
+	return system(
+		"("
+			"upower -i '/org/freedesktop/UPower/devices/DisplayDevice' | grep 'state:\\s*charging'"
+			" || "
+			"! upower -i '/org/freedesktop/UPower/devices/DisplayDevice' | grep 'time to empty:'"
+		")"
+		" > /dev/null"
+	) == 0;
+}
+
 static void inactivity_cb(EV_P_ ev_timer *w, int revents) {
-	system("systemctl suspend");
+	if (is_connected_to_charger()) {
+		DEBUG("Not suspending (on external power)\n");
+	}
+	else {
+		if (!debug_mode) {
+			system("systemctl suspend");
+		}
+		else {
+			DEBUG("Would suspend...\n");
+		}
+	}
 	START_TIMER(inactivity_timeout, TSTAMP_N_SECS(SUSPEND_AFTER_SEC), inactivity_cb);
 };
 
