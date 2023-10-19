@@ -990,11 +990,13 @@ static void xcb_check_cb(EV_P_ ev_check *w, int revents) {
         /* Strip off the highest bit (set if the event is generated) */
         int type = (event->response_type & 0x7F);
 
-        if (type == XCB_BUTTON_PRESS || type == XCB_MOTION_NOTIFY || type == XCB_KEY_PRESS) {
+        if (type == XCB_BUTTON_PRESS || type == XCB_MOTION_NOTIFY) {
             /* Ensures the display is on, in case of desync */
             if (!is_display_on()) {
                 display_on();
             }
+        }
+        if (type == XCB_BUTTON_PRESS || type == XCB_MOTION_NOTIFY || type == XCB_KEY_PRESS) {
             /* Kick back the inactivity_timeout */
             START_TIMER(inactivity_timeout, TSTAMP_N_SECS(INACTIVE_AFTER_SEC), inactivity_cb);
         }
