@@ -135,9 +135,9 @@ static void format_time(char* buf) {
     strftime(buf, 16, "%H:%M", tmp);
 }
 
-static void set_widget_dimensions(uint32_t* widget_width, uint32_t* widget_height) {
-    uint32_t smallest_width = last_resolution[0];
-    uint32_t smallest_height = last_resolution[1];
+static void set_widget_dimensions(int32_t* widget_width, int32_t* widget_height) {
+    int32_t smallest_width = last_resolution[0];
+    int32_t smallest_height = last_resolution[1];
 
     if (xr_screens > 0) {
         /* Composite the unlock indicator in the middle of each screen. */
@@ -165,9 +165,9 @@ static void set_widget_dimensions(uint32_t* widget_width, uint32_t* widget_heigh
     *widget_height *= WIDGET_UI_PROPORTION;
     *widget_width  *= WIDGET_UI_PROPORTION;
 }
-static void set_widget_screen_position(Rect display, uint32_t *x, uint32_t *y) {
-    uint32_t widget_width = 0;
-    uint32_t widget_height = 0;
+static void set_widget_screen_position(Rect display, int32_t *x, int32_t *y) {
+    int32_t widget_width = 0;
+    int32_t widget_height = 0;
 
     set_widget_dimensions(&widget_width, &widget_height);
 
@@ -197,15 +197,15 @@ static void draw_pad_text(
     cairo_close_path(ctx);
 }
 
-pad_button_t action_at(uint32_t x, uint32_t y) {
+pad_button_t action_at(int32_t x, int32_t y) {
     pad_button_t ret = PAD_BUTTON_INVALID;
     int screen = -1;
-    uint32_t widget_width = last_resolution[0];
-    uint32_t widget_height = last_resolution[1];
-    uint32_t widget_x = 0;
-    uint32_t widget_y = 0;
-    uint32_t action_x = 0;
-    uint32_t action_y = 0;
+    int32_t widget_width = last_resolution[0];
+    int32_t widget_height = last_resolution[1];
+    int32_t widget_x = 0;
+    int32_t widget_y = 0;
+    int32_t action_x = 0;
+    int32_t action_y = 0;
 
     /*
      * Situate the event's screen
@@ -271,17 +271,17 @@ pad_button_t action_at(uint32_t x, uint32_t y) {
 
 void draw_button(
     cairo_t *ctx
-    , uint32_t widget_width
-    , uint32_t widget_height
-    , uint32_t x
-    , uint32_t y
-    , uint32_t i
-    , uint32_t j
+    , int32_t widget_width
+    , int32_t widget_height
+    , int32_t x
+    , int32_t y
+    , int32_t i
+    , int32_t j
     , double font_size
 ) {
-    uint32_t num = i + 3*j;
-    uint32_t button_width = floor(widget_width / 3);
-    uint32_t button_height = floor(widget_height / 4);
+    int32_t num = i + 3*j;
+    int32_t button_width = floor(widget_width / 3);
+    int32_t button_height = floor(widget_height / 4);
     char text[16] = "";
     bool pressed = false;
 
@@ -336,7 +336,7 @@ void draw_button(
     cairo_fill(ctx);
 
     cairo_set_source_rgba(ctx, COLOR_RGB_SELECTED, 1);
-    uint32_t middle = button_height / 2 - font_size/2 + 4;
+    int32_t middle = button_height / 2 - font_size/2 + 4;
 
     draw_pad_text(ctx, text, x, y + middle, button_width, true);
 }
@@ -344,10 +344,10 @@ void draw_button(
 void draw_pin_pad(cairo_t *ctx) {
     const double scaling_factor = get_dpi_value() / 96.0;
     cairo_surface_t *surface = (cairo_surface_t*)cairo_get_target(ctx);
-    uint32_t widget_width = cairo_image_surface_get_width(surface);
-    uint32_t widget_height = cairo_image_surface_get_height(surface);
-    uint32_t x = 0;
-    uint32_t y = 0;
+    int32_t widget_width = cairo_image_surface_get_width(surface);
+    int32_t widget_height = cairo_image_surface_get_height(surface);
+    int32_t x = 0;
+    int32_t y = 0;
     double font_size = 32 * scaling_factor;
 
     // Assumed to be the portrait layout for now...
@@ -383,10 +383,10 @@ void draw_pin_box(cairo_t *ctx) {
     const double scaling_factor = get_dpi_value() / 96.0;
     static char buf[512] = "";
     cairo_surface_t *surface = (cairo_surface_t*)cairo_get_target(ctx);
-    uint32_t widget_width = cairo_image_surface_get_width(surface);
-    uint32_t widget_height = cairo_image_surface_get_height(surface);
-    uint32_t x = 0;
-    uint32_t y = 0;
+    int32_t widget_width = cairo_image_surface_get_width(surface);
+    int32_t widget_height = cairo_image_surface_get_height(surface);
+    int32_t x = 0;
+    int32_t y = 0;
     bool show_clock = true;
     double opa = 1;
     double font_size = 48 * scaling_factor;
@@ -440,14 +440,14 @@ void draw_pin_box(cairo_t *ctx) {
         /* Draw the pin  */
         cairo_select_font_face(ctx, FONT_SELECTED, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
         cairo_set_font_size(ctx, font_size);
-        uint32_t middle = widget_height / 2 - font_size/2;
+        int32_t middle = widget_height / 2 - font_size/2;
         draw_pad_text(ctx, buf, x, y + middle, widget_width, true);
     }
     else {
         /* Draw the pin entry characters */
         cairo_select_font_face(ctx, FONT_SELECTED, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
         cairo_set_font_size(ctx, font_size);
-        uint32_t middle = widget_height / 2 - font_size/2;
+        int32_t middle = widget_height / 2 - font_size/2;
         draw_pad_text(ctx, buf, x, y + middle, widget_width, true);
     }
 }
@@ -461,8 +461,8 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
     if (!vistype)
         vistype = get_root_visual_type(screen);
 
-    uint32_t widget_width = last_resolution[0];
-    uint32_t widget_height = last_resolution[1];
+    int32_t widget_width = last_resolution[0];
+    int32_t widget_height = last_resolution[1];
 
     set_widget_dimensions(&widget_width, &widget_height);
 
@@ -477,7 +477,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
     char strgroups[3][3] = {{color[0], color[1], '\0'},
                             {color[2], color[3], '\0'},
                             {color[4], color[5], '\0'}};
-    uint32_t rgb16[3] = {(strtol(strgroups[0], NULL, 16)),
+    int32_t rgb16[3] = {(strtol(strgroups[0], NULL, 16)),
                          (strtol(strgroups[1], NULL, 16)),
                          (strtol(strgroups[2], NULL, 16))};
     cairo_set_source_rgb(xcb_ctx, rgb16[0] / 255.0, rgb16[1] / 255.0, rgb16[2] / 255.0);

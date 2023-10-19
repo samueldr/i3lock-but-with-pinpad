@@ -403,7 +403,7 @@ static void handle_button_press(xcb_button_press_event_t *event) {
         if ((input_position + 8) >= (int)sizeof(password)) {
             return;
         }
-        snprintf(buf, 2, "%d", action);
+        snprintf(buf, 12, "%d", action);
         memcpy(password + input_position, buf, 1);
         input_position += 1;
 

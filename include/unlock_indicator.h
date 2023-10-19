@@ -44,6 +44,6 @@ void free_bg_pixmap(void);
 void draw_image(xcb_pixmap_t bg_pixmap, uint32_t* resolution);
 void redraw_screen(void);
 void clear_indicator(void);
-pad_button_t action_at(uint32_t x, uint32_t y);
+pad_button_t action_at(int32_t x, int32_t y);
 
 #endif
