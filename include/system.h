@@ -2,6 +2,10 @@
 #define _SYSTEM_H
 #include <stdbool.h>
 
+#ifndef SUSPEND_AFTER_SEC
+#define SUSPEND_AFTER_SEC 60
+#endif
+
 void display_on();
 void display_off();
 void display_off_only();

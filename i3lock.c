@@ -1323,8 +1323,6 @@ int main(int argc, char *argv[]) {
     free(image_path);
     free(image_raw_format);
 
-    display_off();
-
     /* Pixmap on which the image is rendered to (if any) */
     xcb_pixmap_t bg_pixmap = create_bg_pixmap(conn, screen, last_resolution, color);
     draw_image(bg_pixmap, last_resolution);
@@ -1369,10 +1367,6 @@ int main(int argc, char *argv[]) {
         exit(EXIT_SUCCESS);
     }
 
-    signal(SIGTERM, system_signal_handler);
-    signal(SIGINT, system_signal_handler);
-    atexit(system_teardown);
-
     /* Load the keymap again to sync the current modifier state. Since we first
      * loaded the keymap, there might have been changes, but starting from now,
      * we should get all key presses/releases due to having grabbed the
@@ -1383,6 +1377,13 @@ int main(int argc, char *argv[]) {
     main_loop = EV_DEFAULT;
     if (main_loop == NULL)
         errx(EXIT_FAILURE, "Could not initialize libev. Bad LIBEV_FLAGS?");
+
+    /* Relies on the event loop for timeouts and stuff */
+    display_off();
+
+    signal(SIGTERM, system_signal_handler);
+    signal(SIGINT, system_signal_handler);
+    atexit(system_teardown);
 
     /* Explicitly call the screen redraw in case "locking…" message was displayed */
     auth_state = STATE_AUTH_IDLE;

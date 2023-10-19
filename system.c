@@ -1,9 +1,26 @@
 #include <stdio.h>
+#include <ev.h>
 #include "system.h"
 #include "i3lock.h"
 
+static struct ev_timer *inactivity_timeout;
+
+typedef void (*ev_callback_t)(EV_P_ ev_timer *w, int revents);
+
+#define TSTAMP_N_SECS(n) (n * 1.0)
+#define TSTAMP_N_MINS(n) (60 * TSTAMP_N_SECS(n))
+#define START_TIMER(timer_obj, timeout, callback) \
+    timer_obj = start_timer(timer_obj, timeout, callback)
+#define STOP_TIMER(timer_obj) \
+    timer_obj = stop_timer(timer_obj)
+
 extern bool debug_mode;
-bool display_state = false;
+/* Display assued to be on at start */
+bool display_state = true;
+
+static void inactivity_cb(EV_P_ ev_timer *w, int revents) {
+	START_TIMER(inactivity_timeout, TSTAMP_N_SECS(SUSPEND_AFTER_SEC), inactivity_cb);
+};
 
 /*
  * XXX
@@ -13,6 +30,7 @@ bool display_state = false;
  */
 
 void display_on() {
+	STOP_TIMER(inactivity_timeout);
 	system("light -I");
 	system("xset dpms force on");
 	display_state = true;
@@ -22,6 +40,7 @@ void display_on() {
 void display_off() {
 	if (is_display_on()) {
 		system("light -O");
+		START_TIMER(inactivity_timeout, TSTAMP_N_SECS(SUSPEND_AFTER_SEC), inactivity_cb);
 	}
 	system(
 		"for f in /sys/class/backlight/*/brightness; do "
