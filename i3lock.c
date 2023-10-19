@@ -274,7 +274,12 @@ static void discard_passwd_cb(EV_P_ ev_timer *w, int revents) {
 
 static void redraw_screen_cb(EV_P_ ev_timer *w, int revents) {
     START_TIMER(redraw_screen_timeout, TSTAMP_N_SECS(1), redraw_screen_cb);
-    redraw_screen();
+    if (!is_display_on()) {
+        display_off_only();
+    }
+    else {
+        redraw_screen();
+    }
 }
 
 static void display_off_cb(EV_P_ ev_timer *w, int revents) {

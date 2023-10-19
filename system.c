@@ -1,5 +1,5 @@
-#include <stdbool.h>
 #include <stdio.h>
+#include "system.h"
 #include "i3lock.h"
 
 extern bool debug_mode;
@@ -13,15 +13,28 @@ bool display_state = false;
  */
 
 void display_on() {
+	system("light -I");
 	system("xset dpms force on");
 	display_state = true;
-	input_mouse_off();
+	input_mouse_on();
 }
 
 void display_off() {
+	if (is_display_on()) {
+		system("light -O");
+	}
+	system(
+		"for f in /sys/class/backlight/*/brightness; do "
+			"echo 0 > \"$f\";"
+		"done"
+	);
+	display_off_only();
+	input_mouse_off();
+}
+
+void display_off_only() {
 	system("xset dpms force off");
 	display_state = false;
-	input_mouse_on();
 }
 
 bool is_display_on() {

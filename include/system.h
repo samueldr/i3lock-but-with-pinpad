@@ -1,8 +1,10 @@
 #ifndef _SYSTEM_H
 #define _SYSTEM_H
+#include <stdbool.h>
 
 void display_on();
 void display_off();
+void display_off_only();
 bool is_display_on();
 
 void input_mouse_on();
