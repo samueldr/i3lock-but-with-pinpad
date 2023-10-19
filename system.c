@@ -63,3 +63,12 @@ void input_mouse_off() {
 	);
 }
 
+void system_teardown() {
+	DEBUG("Tearing down...\n");
+	display_on();
+}
+
+void system_signal_handler(const int signum) {
+	system_teardown();
+	exit(7);
+}

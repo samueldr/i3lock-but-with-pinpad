@@ -1369,6 +1369,10 @@ int main(int argc, char *argv[]) {
         exit(EXIT_SUCCESS);
     }
 
+    signal(SIGTERM, system_signal_handler);
+    signal(SIGINT, system_signal_handler);
+    atexit(system_teardown);
+
     /* Load the keymap again to sync the current modifier state. Since we first
      * loaded the keymap, there might have been changes, but starting from now,
      * we should get all key presses/releases due to having grabbed the
