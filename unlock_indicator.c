@@ -34,6 +34,8 @@
 #define BUTTON_CENTER (BUTTON_RADIUS + 5)
 #define BUTTON_DIAMETER (2 * BUTTON_SPACE)
 
+#define IMAGE_SHADE_OPA (50/100.0)
+
 #define WIDGET_RATIO_WIDTH 11
 #define WIDGET_RATIO_HEIGHT 16
 #define WIDGET_PADDING 16
@@ -456,6 +458,50 @@ void draw_pin_box(cairo_t *ctx) {
     }
 }
 
+void draw_background_image(cairo_t *xcb_ctx, uint32_t *resolution) {
+    /* create a pattern and fill a rectangle as big as the screen */
+    cairo_pattern_t *pattern = cairo_pattern_create_for_surface(img);
+    cairo_set_source(xcb_ctx, pattern);
+
+    int32_t x = 0;
+    int32_t y = 0;
+    int32_t image_width = cairo_image_surface_get_width(img);
+    int32_t image_height = cairo_image_surface_get_height(img);
+
+    /* Compute "cover" style fill screen */
+    double ratio = 1;
+    double ratio_x = 1;
+    double ratio_y = 1;
+    ratio_x = (double)image_width /(double)resolution[0];
+    ratio_y = (double)image_height/(double)resolution[1];
+
+    if (ratio_y < ratio_x) {
+        ratio = ratio_y;
+    }
+    else {
+        ratio = ratio_x;
+    }
+    /* Translation to center the image */
+    x = (image_width  * (1/ratio))/2 - resolution[0]/2;
+    y = (image_height * (1/ratio))/2 - resolution[1]/2;
+
+    cairo_matrix_t matrix;
+    cairo_matrix_init_scale(&matrix, ratio, ratio);
+    cairo_matrix_translate(&matrix, x, y);
+
+    cairo_pattern_set_extend(pattern, CAIRO_EXTEND_REPEAT);
+    cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
+    cairo_pattern_set_matrix(pattern, &matrix);
+
+    cairo_fill(xcb_ctx);
+    cairo_pattern_destroy(pattern);
+
+    /* Shade down the image a bit */
+    cairo_set_source_rgba(xcb_ctx, 0, 0, 0, IMAGE_SHADE_OPA);
+    cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
+    cairo_fill(xcb_ctx);
+}
+
 /*
  * Draws global image with fill color onto a pixmap with the given
  * resolution and returns it.
@@ -499,19 +545,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
 #endif
 
     if (img) {
-        if (!tile) {
-            cairo_set_source_surface(xcb_ctx, img, 0, 0);
-            cairo_paint(xcb_ctx);
-        } else {
-            /* create a pattern and fill a rectangle as big as the screen */
-            cairo_pattern_t *pattern;
-            pattern = cairo_pattern_create_for_surface(img);
-            cairo_set_source(xcb_ctx, pattern);
-            cairo_pattern_set_extend(pattern, CAIRO_EXTEND_REPEAT);
-            cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
-            cairo_fill(xcb_ctx);
-            cairo_pattern_destroy(pattern);
-        }
+        draw_background_image(xcb_ctx, resolution);
     }
 
     /*
