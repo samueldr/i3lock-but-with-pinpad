@@ -28,7 +28,7 @@
 #define WITH_DEBUG_RENDER
 #endif
 
-#define WIDGET_UI_PROPORTION (60/100.0)
+#define WIDGET_UI_PROPORTION (65/100.0)
 #define BUTTON_RADIUS 90
 #define BUTTON_SPACE (BUTTON_RADIUS + 5)
 #define BUTTON_CENTER (BUTTON_RADIUS + 5)
@@ -37,6 +37,8 @@
 #define WIDGET_RATIO_WIDTH 11
 #define WIDGET_RATIO_HEIGHT 16
 #define WIDGET_PADDING 16
+
+#define WIDGET_CENTER_TARGET (100.0/63)
 
 #define COLOR_RGB_WHITE 1, 1, 1
 #define COLOR_RGB_BLACK 0, 0, 0
@@ -173,7 +175,7 @@ static void set_widget_screen_position(Rect display, int32_t *x, int32_t *y) {
 
     // Target location of the widget surface on this display
     *x = (display.x) + ((display.width / 2)  - (widget_width / 2));
-    *y = (display.y) + ((display.height / 2) - (widget_height / 2));
+    *y = (display.y) + ((display.height / WIDGET_CENTER_TARGET) - (widget_height / 2));
 }
 
 static void draw_pad_text(
