@@ -459,46 +459,60 @@ void draw_pin_box(cairo_t *ctx) {
 }
 
 void draw_background_image(cairo_t *xcb_ctx, uint32_t *resolution) {
-    /* create a pattern and fill a rectangle as big as the screen */
-    cairo_pattern_t *pattern = cairo_pattern_create_for_surface(img);
-    cairo_set_source(xcb_ctx, pattern);
+    static cairo_surface_t *bg_surface = NULL;
 
-    int32_t x = 0;
-    int32_t y = 0;
-    int32_t image_width = cairo_image_surface_get_width(img);
-    int32_t image_height = cairo_image_surface_get_height(img);
+    if (bg_surface == NULL) {
+        bg_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, resolution[0], resolution[1]);
+        cairo_t *ctx = cairo_create(bg_surface);
+        cairo_pattern_t *background_image;
 
-    /* Compute "cover" style fill screen */
-    double ratio = 1;
-    double ratio_x = 1;
-    double ratio_y = 1;
-    ratio_x = (double)image_width /(double)resolution[0];
-    ratio_y = (double)image_height/(double)resolution[1];
+        /* create a pattern and fill a rectangle as big as the screen */
+        background_image = cairo_pattern_create_for_surface(img);
 
-    if (ratio_y < ratio_x) {
-        ratio = ratio_y;
+        int32_t x = 0;
+        int32_t y = 0;
+        int32_t image_width = cairo_image_surface_get_width(img);
+        int32_t image_height = cairo_image_surface_get_height(img);
+
+        /* Compute "cover" style fill screen */
+        double ratio = 1;
+        double ratio_x = 1;
+        double ratio_y = 1;
+        ratio_x = (double)image_width /(double)resolution[0];
+        ratio_y = (double)image_height/(double)resolution[1];
+
+        if (ratio_y < ratio_x) {
+            ratio = ratio_y;
+        }
+        else {
+            ratio = ratio_x;
+        }
+        /* Translation to center the image */
+        x = (image_width  * (1/ratio))/2 - resolution[0]/2;
+        y = (image_height * (1/ratio))/2 - resolution[1]/2;
+
+        cairo_matrix_t matrix;
+        cairo_matrix_init_scale(&matrix, ratio, ratio);
+        cairo_matrix_translate(&matrix, x, y);
+        cairo_pattern_set_matrix(background_image, &matrix);
+        cairo_pattern_set_extend(background_image, CAIRO_EXTEND_REPEAT);
+
+        /* Render image to surface */
+        cairo_rectangle(ctx, 0, 0, resolution[0], resolution[1]);
+        cairo_set_source(ctx, background_image);
+        cairo_fill(ctx);
+
+        /* Shade down the image a bit */
+        cairo_set_source_rgba(ctx, 0, 0, 0, IMAGE_SHADE_OPA);
+        cairo_rectangle(ctx, 0, 0, resolution[0], resolution[1]);
+        cairo_fill(ctx);
+
+        cairo_pattern_destroy(background_image);
+        cairo_destroy(ctx);
     }
-    else {
-        ratio = ratio_x;
-    }
-    /* Translation to center the image */
-    x = (image_width  * (1/ratio))/2 - resolution[0]/2;
-    y = (image_height * (1/ratio))/2 - resolution[1]/2;
 
-    cairo_matrix_t matrix;
-    cairo_matrix_init_scale(&matrix, ratio, ratio);
-    cairo_matrix_translate(&matrix, x, y);
-
-    cairo_pattern_set_extend(pattern, CAIRO_EXTEND_REPEAT);
     cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
-    cairo_pattern_set_matrix(pattern, &matrix);
-
-    cairo_fill(xcb_ctx);
-    cairo_pattern_destroy(pattern);
-
-    /* Shade down the image a bit */
-    cairo_set_source_rgba(xcb_ctx, 0, 0, 0, IMAGE_SHADE_OPA);
-    cairo_rectangle(xcb_ctx, 0, 0, resolution[0], resolution[1]);
+    cairo_set_source_surface(xcb_ctx, bg_surface, 0, 0);
     cairo_fill(xcb_ctx);
 }
 
